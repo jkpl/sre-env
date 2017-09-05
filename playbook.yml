@@ -1,0 +1,105 @@
+---
+- hosts: all
+  vars:
+    home_dir: /home/vagrant
+  tasks:
+    - name: Install SELinux bindings
+      become: yes
+      become_method: sudo
+      dnf: name={{item}} state=latest
+      with_items:
+        - libselinux-python
+        - libselinux-python3
+    - name: Add BCC repository
+      become: yes
+      become_method: sudo
+      copy:
+        content: |
+          [iovisor]
+          baseurl=https://repo.iovisor.org/yum/nightly/f25/$basearch
+          enabled=1
+          gpgcheck=0
+        dest: /etc/yum.repos.d/iovisor.repo
+        owner: root
+        group: root
+        mode: 0644
+    - name: Add Docker CE repository
+      become: yes
+      become_method: sudo
+      get_url:
+        url: https://download.docker.com/linux/fedora/docker-ce.repo
+        dest: /etc/yum.repos.d/docker-ce.repo
+        owner: root
+        group: root
+        mode: 0644
+    - name: Install tools from Fedora repos
+      become: yes
+      become_method: sudo
+      dnf: name={{item}} state=latest
+      with_items:
+        - java-1.8.0-openjdk
+        - java-1.8.0-openjdk-devel
+        - kernel-devel
+        - kernel-headers
+        - perf
+        - bcc-tools
+        - rkt
+        - docker-ce
+        - screen
+        - tmux
+        - cmake
+        - git
+        - gcc
+        - gcc-c++
+    - name: Ensure the user has a bin directory
+      file:
+        path: "{{ home_dir }}/bin"
+        state: directory
+    - name: Install perf-agent-map
+      block:
+        - git:
+            repo: https://github.com/jvm-profiling-tools/perf-map-agent.git
+            dest: "{{ home_dir }}/sources/perf-map-agent"
+          register: pmaclone
+        - file:
+            path: "{{ home_dir }}/sources/perf-map-agent/Makefile"
+            state: absent
+          when: pmaclone.remote_url_changed
+        - command: cmake .
+          args:
+            chdir: "{{ home_dir }}/sources/perf-map-agent"
+            creates: "{{ home_dir }}/sources/perf-map-agent/Makefile"
+        - command: make
+          args:
+            chdir: "{{ home_dir }}/sources/perf-map-agent"
+        - file:
+            src: "{{ home_dir }}/sources/perf-map-agent/bin/{{ item }}"
+            dest: "{{ home_dir }}/bin/{{ item }}"
+            state: link
+          with_items:
+            - perf-java-top
+            - perf-java-report-stack
+            - perf-java-record-stack
+            - perf-java-flames
+    - name: Install FlameGraph
+      block:
+        - git:
+            repo: https://github.com/brendangregg/FlameGraph
+            dest: "{{ home_dir }}/sources/FlameGraph"
+        - file:
+            src: "{{ home_dir }}/sources/FlameGraph/{{ item }}"
+            dest: "{{ home_dir }}/bin/{{ item }}"
+            state: link
+          with_items:
+            - stackcollapse.pl
+            - stackcollapse-perf.pl
+            - stackcollapse-pmc.pl
+            - stackcollapse-stap.pl
+            - stackcollapse-instruments.pl
+            - stackcollapse-vtune.pl
+            - stackcollapse-ljp.awk
+            - stackcollapse-jstack.pl
+            - stackcollapse-gdb.pl
+            - stackcollapse-go.pl
+            - stackcollapse-vsprof.pl
+            - flamegraph.pl
