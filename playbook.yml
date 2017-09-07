@@ -99,7 +99,7 @@
         - file:
             path: "{{ src_dir }}/perf-map-agent/Makefile"
             state: absent
-          when: pmaclone.remote_url_changed
+          when: pmaclone.before != pmaclone.after
         - command: cmake .
           args:
             chdir: "{{ src_dir }}/perf-map-agent"
