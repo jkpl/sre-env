@@ -28,12 +28,15 @@
     - name: Add Docker CE repository
       become: yes
       become_method: sudo
-      get_url:
-        url: https://download.docker.com/linux/fedora/docker-ce.repo
-        dest: /etc/yum.repos.d/docker-ce.repo
-        owner: root
-        group: root
-        mode: 0644
+      block:
+        - rpm_key:
+            key: https://download.docker.com/linux/fedora/gpg
+        - get_url:
+            url: https://download.docker.com/linux/fedora/docker-ce.repo
+            dest: /etc/yum.repos.d/docker-ce.repo
+            owner: root
+            group: root
+            mode: 0644
     - name: Install tools from Fedora repos
       become: yes
       become_method: sudo
