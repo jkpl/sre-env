@@ -57,6 +57,11 @@
       file:
         path: "{{ bin_dir }}"
         state: directory
+    - name: Install BCC runner
+      copy:
+        src: /vagrant/bccrun
+        dest: "{{ bin_dir }}/bccrun"
+        mode: 0755
     - name: Install perf-agent-map
       block:
         - git:
