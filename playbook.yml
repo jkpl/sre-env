@@ -2,6 +2,8 @@
 - hosts: all
   vars:
     home_dir: /home/vagrant
+    bin_dir: "{{ home_dir }}/bin"
+    src_dir: "{{ home_dir }}/sources"
   tasks:
     - name: Install SELinux bindings
       become: yes
@@ -53,28 +55,28 @@
         - gcc-c++
     - name: Ensure the user has a bin directory
       file:
-        path: "{{ home_dir }}/bin"
+        path: "{{ bin_dir }}"
         state: directory
     - name: Install perf-agent-map
       block:
         - git:
             repo: https://github.com/jvm-profiling-tools/perf-map-agent.git
-            dest: "{{ home_dir }}/sources/perf-map-agent"
+            dest: "{{ src_dir }}/perf-map-agent"
           register: pmaclone
         - file:
-            path: "{{ home_dir }}/sources/perf-map-agent/Makefile"
+            path: "{{ src_dir }}/perf-map-agent/Makefile"
             state: absent
           when: pmaclone.remote_url_changed
         - command: cmake .
           args:
-            chdir: "{{ home_dir }}/sources/perf-map-agent"
-            creates: "{{ home_dir }}/sources/perf-map-agent/Makefile"
+            chdir: "{{ src_dir }}/perf-map-agent"
+            creates: "{{ src_dir }}/perf-map-agent/Makefile"
         - command: make
           args:
-            chdir: "{{ home_dir }}/sources/perf-map-agent"
+            chdir: "{{ src_dir }}/perf-map-agent"
         - file:
-            src: "{{ home_dir }}/sources/perf-map-agent/bin/{{ item }}"
-            dest: "{{ home_dir }}/bin/{{ item }}"
+            src: "{{ src_dir }}/perf-map-agent/bin/{{ item }}"
+            dest: "{{ bin_dir }}/{{ item }}"
             state: link
           with_items:
             - perf-java-top
