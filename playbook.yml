@@ -53,6 +53,15 @@
         - git
         - gcc
         - gcc-c++
+    - name: Install shell extensions
+      become: yes
+      become_method: sudo
+      copy:
+        src: /vagrant/profile_ext.sh
+        dest: /etc/profile.d/sre.sh
+        owner: root
+        group: root
+        mode: 0755
     - name: Ensure the user has a bin directory
       file:
         path: "{{ bin_dir }}"
