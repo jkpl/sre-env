@@ -5,6 +5,9 @@ Vagrant.configure("2") do |config|
   # Base image
   config.vm.box = "fedora/25-cloud-base"
 
+  # Mounts
+  config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
+
   # Virtualbox configuration
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
@@ -12,7 +15,7 @@ Vagrant.configure("2") do |config|
   end
 
   # Bootstrap Ansible
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", privileged: true, inline: <<-SHELL
     dnf upgrade -y --refresh --setopt=deltarpm=false
     dnf install -y ansible
   SHELL
