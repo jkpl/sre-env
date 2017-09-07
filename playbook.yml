@@ -37,6 +37,21 @@
             owner: root
             group: root
             mode: 0644
+    - name: Add Golang repository
+      become: yes
+      become_method: sudo
+      block:
+        - get_url:
+            url: https://mirror.go-repo.io/fedora/RPM-GPG-KEY-GO-REPO
+            dest: /tmp/go-repo.gpg
+        - rpm_key:
+            key: /tmp/go-repo.gpg
+        - get_url:
+            url: https://mirror.go-repo.io/fedora/go-repo.repo
+            dest: /etc/yum.repos.d/go-repo.repo
+            owner: root
+            group: root
+            mode: 0644
     - name: Install tools from Fedora repos
       become: yes
       become_method: sudo
@@ -56,6 +71,7 @@
         - git
         - gcc
         - gcc-c++
+        - golang
     - name: Install shell extensions
       become: yes
       become_method: sudo
